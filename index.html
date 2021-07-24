@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+          <title>Coding Lang</title>
+          <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+          <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+          <script src='https://unpkg.com/babel-standalone@6/babel.min.js'></script>
+          <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+          <div id='app'></div>
+          
+          <script>
+                    window.API = {
+                              fetchPopularRepos() {
+                                        const encodedURI = encodeURI(`https://student-worker2.herokuapp.com/search`)
+                                        // https://api.github.com/search/repositories?q=stars:>1+language:${all}&sort=stars&order=desc&type=Repositories
+                                        return fetch(encodedURI)
+                                                  .then((res) => res.json())
+                                                  .then((data) => data.jobs)
+
+                                                  .catch((error) => {
+                                                            console.warn(error)
+                                                            return null
+                                                  });
+                              }
+                    }
+          </script>
+
+          <script type='text/babel'>
+                    class Loading extends React.Component {
+                              constructor(props) {
+                                        super(props);
+                                        this.state = {
+                                                  text: 'Loading'
+                                        };
+                              }
+
+                              // LifeCycle methods
+                              componentDidMount() {
+                                        const stopper = this.state.text + '...';
+
+                                        this.interval = window.setInterval(() => {
+                                                  // ternary operator
+                                                  this.state.text === stopper
+                                                            ? this.setState(() => ({ text: 'Loading' }))
+                                                            : this.setState((prevState) => ({ text: prevState.text + '.' }))
+                                                  
+                                                  
+                                        }, 300)
+                              }
+
+                              componentWillUnmount() {
+                                        window.clearInterval(this.interval);
+                              }
+
+                              render() {
+                                        return (
+                                                  <p>
+                                                            {this.state.text}
+                                                  </p>
+                                        )
+                              }
+                    }
+
+                    // child component
+
+                    function RepoGrid (props) {
+                              return (
+                                        <ul style={{display: 'flex', flexWrap: 'wrap'}}>
+
+                                                  {props.repos.map(({ companyName, location, jobType, salary, hrsPerWeek, _id, title}) => (
+                                                            <li key={_id} style={{margin: 30}}>
+
+                                                                      <ul>
+                                                                                <li>{title}</li>
+                                                                                <li>{companyName}</li>
+                                                                                <li>{location}</li>
+                                                                                <li>{jobType}</li>
+                                                                                <li>${salary}</li>
+                                                                                <li>{hrsPerWeek}hrs</li>
+                                                                      </ul>
+
+                                                            </li>
+                                                  ))}
+
+                                        </ul>
+                              )
+                    }
+
+                    /*
+                    */ 
+                    class App extends React.Component {
+                              constructor(props) {
+                                        super(props)
+
+                                        this.state = {
+                                                  langToDisplay: 'all',        //for home pg
+                                                  pageStillLoading: true,      // boolean
+                                                  repos: [],          //data from d api
+                                        }
+
+                              }
+
+                              // method for API ----get
+                              // change oda state except d main th(langToDisplay)
+                              fetchRepos= () => {
+                                        this.setState(() => {
+                                                  return (
+                                                            {
+                                                                      pageStillLoading: true
+                                                            }
+                                                  )
+                                        })
+
+                                        window.API.fetchPopularRepos()
+                                                  .then((data) => {
+                                                            this.setState(()=> {
+                                                                      return (
+                                                                                {
+                                                                                          pageStillLoading: false,
+                                                                                          repos: data
+                                                                                }
+                                                                      )
+                                                            })
+                                                  })
+                              }
+
+                              // Lifecycles: get
+                              componentDidMount() {
+                                        this.fetchRepos()
+                              }
+
+                              // 
+                              // selectLanguage= (lang) => {
+                                        
+                              //           this.setState(()=> {
+                              //                     return ({
+                              //                               langToDisplay: lang
+                              //                     })
+                              //           })
+                              // }
+                              
+                              // get
+                              render() {
+                                        let repoInfo = this.state.repos
+
+                                        return (
+                                                  <div>
+                                                            
+                                                            {
+                                                                      this.state.pageStillLoading === true
+                                                                                ? <Loading />
+
+                                                                                : <div>
+                                                                                          <h1 style={{textAlign: 'center'}}>
+                                                                                                    Zuri Project
+                                                                                          </h1>
+
+                                                                                          <RepoGrid repos={repoInfo} />
+                                                                                </div>
+                                                            }
+                                                  </div>
+                                        )
+                              }
+                    }
+                    
+                    ReactDOM.render(
+                              <App />,
+                              document.getElementById('app')
+                    )
+
+          </script>
+</body>
+</html>

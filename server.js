@@ -18,5 +18,4 @@ function onReq(req, res) {
 }
 
 
-http.createServer(onReq).listen(8888);
-console.log(`Server is running you better catch it....`);
+http.createServer(onReq).listen(process.env.PORT || 8888, () => console.log(`Server is running you better catch it....`));
